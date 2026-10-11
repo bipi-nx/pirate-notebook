@@ -1,5 +1,5 @@
 // Cache-first: once installed, the app never needs the network again.
-const V = "pirate-notebook-20261011231224";
+const V = "pirate-notebook-20261011231626";
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(V).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener("activate", e => {
