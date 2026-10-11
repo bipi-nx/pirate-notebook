@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Notebook">
+<meta name="theme-color" content="#14181f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Pirate Notebook</title>
+<style>
+:root{
+  --bg:#f4f1ea; --card:#fffdf8; --ink:#1d2129; --muted:#6b6f78; --line:#ddd6c8;
+  --accent:#b5761b; --accent-ink:#fff; --danger:#b3362b; --field:#fff; --chip:#efe8da;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14181f; --card:#1d222b; --ink:#e9e6df; --muted:#9097a3; --line:#2f3642;
+    --accent:#e0a54a; --accent-ink:#1a1408; --danger:#f07a6e; --field:#161a21; --chip:#272d38;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14181f; --card:#1d222b; --ink:#e9e6df; --muted:#9097a3; --line:#2f3642;
+  --accent:#e0a54a; --accent-ink:#1a1408; --danger:#f07a6e; --field:#161a21; --chip:#272d38;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+  -webkit-text-size-adjust:100%}
+body{padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+header{position:sticky;top:0;z-index:5;background:var(--bg);
+  padding:calc(env(safe-area-inset-top) + 8px) 16px 8px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:8px;min-height:52px}
+header h1{font-size:18px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#saved{font-size:12px;color:var(--muted)}
+main{padding:12px 16px 24px;max-width:720px;margin:0 auto}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);
+  border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
+nav button{flex:1;background:none;border:0;color:var(--muted);font:600 13px/1 inherit;
+  padding:12px 0 14px;min-height:56px}
+nav button.on{color:var(--accent)}
+nav b{display:block;font-size:20px;margin-bottom:4px}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.btn{background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:10px 14px;
+  min-height:44px;font-weight:600}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{color:var(--danger)}
+.btn.small{min-height:36px;padding:6px 10px;font-size:14px}
+.back{background:none;border:0;color:var(--accent);font-weight:600;font-size:17px;padding:8px 8px 8px 0;min-height:44px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--field);
+  border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;min-height:44px}
+select{-webkit-appearance:none;appearance:none;padding-right:28px;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 16px) 19px,calc(100% - 11px) 19px;background-size:5px 5px;background-repeat:no-repeat}
+textarea{resize:none;min-height:64px;overflow:hidden;line-height:1.45}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+label.f{display:block;margin:0 0 12px}
+label.f>span{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:0 0 4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+details.sec{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:0 0 12px;overflow:hidden}
+details.sec>summary{list-style:none;padding:14px 16px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary::after{content:"▾";color:var(--muted)}
+details.sec:not([open])>summary::after{content:"▸"}
+details.sec>.body{padding:0 16px 14px}
+.hint{font-size:13px;color:var(--muted);margin:0 0 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin:0 0 10px}
+.list a{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);
+  border-radius:12px;padding:12px 14px;margin:0 0 8px}
+.list a .t{font-weight:700}
+.list a .s{font-size:14px;color:var(--muted)}
+.chip{display:inline-block;background:var(--chip);border-radius:999px;padding:2px 8px;font-size:12px;margin:4px 4px 0 0;color:var(--muted)}
+.empty{color:var(--muted);text-align:center;padding:32px 8px}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:0 0 12px}
+.seg button{flex:1;border:0;background:var(--field);padding:10px;min-height:44px;font-weight:600}
+.seg button.on{background:var(--accent);color:var(--accent-ink)}
+.swatches{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.swatches button{width:40px;height:40px;border-radius:50%;border:2px solid var(--line);font-size:12px;font-weight:700;color:#0006}
+.swatches button.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent)}
+.x{background:none;border:0;color:var(--danger);font-size:20px;min-width:44px;min-height:44px}
+pre{background:var(--field);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:12px;
+  overflow:auto;max-height:50vh;white-space:pre}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));
+  background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:999px;font-size:14px;opacity:0;
+  transition:opacity .2s;pointer-events:none;z-index:9}
+#toast.on{opacity:1}
+.stage{border-left:3px solid var(--accent)}
+.sub{font-size:13px;font-weight:700;color:var(--muted);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.04em}
+</style>
+
+<style>
+nav button{font-size:12px}
+.chip.game{color:var(--accent)}
+.chip.warn{color:var(--danger)}
+</style>
+</head>
+<body>
+<header><div id="hd" class="row grow"></div><span id="saved"></span></header>
+<main id="app"></main>
+<nav>
+  <button data-tab="people"><b>☺</b>People</button>
+  <button data-tab="quests"><b>!</b>Quests</button>
+  <button data-tab="weapons"><b>⚔︎</b>Weapons</button>
+  <button data-tab="enemies"><b>☠︎</b>Enemies</button>
+  <button data-tab="export"><b>⇪</b>Export</button>
+</nav>
+<div id="toast"></div>
+<script>
+"use strict";
+const D = {"faces": ["f-arabic-ct-2", "f-arabic-ct-3", "f-arabic-ct-4", "f-arabic-pr-2", "f-arabic-pr-3", "f-arabic-pr-4", "f-arabic-pr-5", "f-arabic-su-2", "f-arabic-su-3", "f-arabic-su-4", "f-arabic-su-5", "f-arabic-sx-1", "f-arabic-sx-2", "f-arabic-sx-3", "f-arabic-sx-4", "f-arabic-sx-5", "f-black-ct-2", "f-black-ct-4", "f-black-ct-5", "f-black-pr-1", "f-black-pr-2", "f-black-pr-5", "f-black-su-1", "f-black-su-3", "f-black-su-5", "f-black-sx-1", "f-black-sx-2", "f-black-sx-3", "f-black-sx-4", "f-black-sx-5", "f-chinese-ct-2", "f-chinese-ct-3", "f-chinese-fl-2", "f-chinese-fl-3", "f-chinese-fl-5", "f-chinese-pr-2", "f-chinese-pr-3", "f-chinese-su-2", "f-chinese-su-3", "f-chinese-su-4", "f-chinese-sx-1", "f-chinese-sx-2", "f-chinese-sx-3", "f-chinese-sx-5", "f-ginger-ct-1", "f-ginger-ct-2", "f-ginger-ct-4", "f-ginger-ct-5", "f-ginger-fl-3", "f-ginger-fl-4", "f-ginger-pr-1", "f-ginger-pr-2", "f-ginger-sx-1", "f-ginger-sx-2", "f-ginger-sx-3", "f-ginger-sx-4", "f-ginger-sx-5", "f-indian-ct-1", "f-indian-ct-3", "f-indian-ct-4", "f-indian-fl-3", "f-indian-fl-4", "f-indian-fl-5", "f-indian-pr-3", "f-indian-pr-4", "f-indian-pr-5", "f-indian-su-2", "f-indian-su-3", "f-indian-su-5", "f-indian-sx-2", "f-indian-sx-4", "f-indian-sx-5", "f-mexican-ct-1", "f-mexican-ct-3", "f-mexican-ct-4", "f-mexican-ct-5", "f-mexican-fl-1", "f-mexican-fl-3", "f-mexican-fl-4", "f-mexican-fl-5", "f-mexican-pr-2", "f-mexican-pr-3", "f-mexican-pr-4", "f-mexican-su-1", "f-mexican-su-2", "f-mexican-su-3", "f-mexican-su-4", "f-mexican-sx-2", "f-mexican-sx-4", "f-mexican-sx-5", "f-swiss-ct-2", "f-swiss-ct-3", "f-swiss-fl-1", "f-swiss-fl-2", "f-swiss-fl-4", "f-swiss-fl-5", "f-swiss-pr-1", "f-swiss-pr-2", "f-swiss-pr-3", "f-swiss-pr-4", "f-swiss-su-1", "f-swiss-su-2", "f-swiss-su-3", "f-swiss-su-4", "f-swiss-su-5", "f-swiss-sx-1", "f-swiss-sx-2", "m-07-older-men-2", "m-07-older-men-5", "m-08-tones-a-1", "m-08-tones-a-3", "m-09-tones-b-2", "m-10-tones-c-3", "m-arabic-action-1", "m-arabic-action-2", "m-arabic-handsome-2", "m-arabic-handsome-4", "m-arabic-older-4", "m-arabic-older-5", "m-arabic-rugged-2", "m-arabic-rugged-4", "m-arabic-young-4", "m-arabic-young-5", "m-black-handsome-1", "m-black-handsome-2", "m-black-older-3", "m-black-older-4", "m-black-rugged-1", "m-black-rugged-4", "m-black-young-1", "m-black-young-3", "m-black-young-4", "m-chinese-action-3", "m-chinese-action-5", "m-chinese-handsome-1", "m-chinese-handsome-5", "m-chinese-older-1", "m-chinese-older-3", "m-chinese-older-4", "m-chinese-rugged-1", "m-chinese-rugged-4", "m-chinese-young-1", "m-chinese-young-2", "m-chinese-young-4", "m-ginger-action-2", "m-ginger-action-4", "m-ginger-handsome-1", "m-ginger-handsome-4", "m-ginger-older-1", "m-ginger-older-3", "m-ginger-older-4", "m-ginger-rugged-1", "m-ginger-rugged-4", "m-ginger-young-1", "m-ginger-young-2", "m-ginger-young-4", "m-ginger-young-5", "m-indian-action-3", "m-indian-handsome-1", "m-indian-handsome-3", "m-indian-older-1", "m-indian-older-3", "m-indian-older-5", "m-indian-rugged-1", "m-indian-young-1", "m-mexican-action-1", "m-mexican-action-2", "m-mexican-handsome-1", "m-mexican-handsome-2", "m-mexican-older-1", "m-mexican-older-4", "m-mexican-older-5", "m-mexican-rugged-2", "m-mexican-young-2", "m-mexican-young-3", "m-mexican-young-4", "m-swiss-action-5", "m-swiss-handsome-1", "m-swiss-handsome-5", "m-swiss-older-1", "m-swiss-older-2", "m-swiss-older-5", "m-swiss-rugged-1", "m-swiss-rugged-2", "m-swiss-rugged-4", "m-swiss-young-1", "m-swiss-young-2", "m-swiss-young-4", "w-black-american-1", "w-black-american-2", "w-black-american-3", "w-black-american-4", "w-black-american-5", "w-black-american-6", "w-brazilian-1", "w-brazilian-2", "w-brazilian-3", "w-brazilian-4", "w-brazilian-5", "w-brazilian-6", "w-chinese-1", "w-chinese-2", "w-chinese-3", "w-chinese-4", "w-chinese-5", "w-chinese-6", "w-filipino-1", "w-filipino-2", "w-filipino-3", "w-filipino-4", "w-filipino-5", "w-filipino-6", "w-french-1", "w-french-2", "w-french-3", "w-french-4", "w-french-5", "w-french-6", "w-indian-1", "w-indian-2", "w-indian-3", "w-indian-4", "w-indian-5", "w-indian-6", "w-korean-1", "w-korean-2", "w-korean-3", "w-korean-4", "w-korean-5", "w-korean-6", "w-mexican-1", "w-mexican-2", "w-mexican-3", "w-mexican-4", "w-mexican-5", "w-mexican-6", "w-native-american-1", "w-native-american-2", "w-native-american-3", "w-native-american-4", "w-native-american-5", "w-native-american-6", "w-nigerian-1", "w-nigerian-2", "w-nigerian-3", "w-nigerian-4", "w-nigerian-5", "w-nigerian-6", "w-russian-1", "w-russian-2", "w-russian-3", "w-russian-4", "w-russian-5", "w-russian-6", "w-spanish-1", "w-spanish-2", "w-spanish-3", "w-spanish-4", "w-spanish-5", "w-spanish-6", "w-thai-1", "w-thai-2", "w-thai-3", "w-thai-4", "w-thai-5", "w-thai-6", "w-us-american-1", "w-us-american-2", "w-us-american-3", "w-us-american-4", "w-us-american-5", "w-us-american-6"], "wigs": ["agnes", "allegra", "amara", "astra", "belle", "bridget", "calliope", "carmilla", "chaka", "cher", "cleo", "corinne", "dalia", "dany", "delphine", "echo", "edie", "elisa", "erykah", "esme", "farrah", "greta", "hana", "hester", "holly", "ida", "imani", "janelle", "jean", "joni", "juniper", "juno", "krystle", "lauryn", "lesley", "lilith", "lorelei", "louise", "lyra", "macy", "maren", "margot", "marlowe", "mia", "mirabel", "morgana", "morticia", "nell", "noelle", "oona", "orla", "perdita", "petra", "pippa", "posy", "romy", "rosa", "ruby", "saskia", "selina", "serena", "sigrid", "sloane", "sofia", "solange", "sonya", "stevie", "sza", "talia", "tamsin", "tina", "vega", "verity", "willa", "willow", "winona", "yumi", "zosia"], "beards": ["none", "forked", "full", "short", "moustache"], "tints": ["black", "ash", "white", "blonde", "ginger", "chestnut", "plum", "sea"], "dyes": ["as woven", "charcoal", "bone", "rust", "moss", "navy", "plum", "sand", "teal", "white"], "shoeDyes": ["crimson", "leather", "ink", "bone", "sea green", "saffron"], "tops": ["freebooter waistcoat", "male freebooter waistcoat", "boarding vest", "male boarding vest", "officer jacket", "male officer jacket", "padded jack", "tank", "bikini", "skimpy bikini", "one-piece", "low", "long", "blouse", "bodice", "dress", "vest", "sweater", "tee", "sleeveless tee", "sleeveless blouse", "short sleeve blouse", "male blouse", "male padded jack", "male tee", "male long"], "legs": ["male boarding breeches", "boarding breeches", "male quartermaster trousers", "quartermaster trousers", "bikini", "skimpy bikini", "short shorts", "shorts", "trousers", "slops", "breeches", "male slops", "male shorts", "male trousers", "male speedo", "male trunks", "mini skirt", "skirt", "long skirt"], "shoes": ["cuffed boots", "sea boots", "shoe", "boot", "male shoe", "sandal", "male sandal"], "skins": ["#f6d1a5", "#efcba3", "#e5b480", "#d49d70", "#cc8860", "#b17351", "#9d6044", "#774b38", "#674232"], "fringes": ["blunt bangs", "side-swept", "arched", "centre part", "wavy"], "homes": ["annex", "house", "lodge", "shed", "shop", "tower", "granary", "tavern"], "stalls": ["cartographer", "merchant", "shipwright"]};
+const SEED = {"npcs":[],"quests":[],"weapons":[],"enemies":[]};
+const KEY = "pirate-notebook-v1", VKEY = "pirate-notebook-view";
+const KINDS = ["inside","door","stall","fountain","pier","quay","landing"];
+const WHEN = ["greeting","small talk","farewell","about the town","about someone","rumour","angry","scared"];
+const ITEMS = ["wood","coconut","banana","strawberry","ore","slime goo","mushroom cap","fish","food","gold"];
+const ENEMY_TYPES = ["creature","wretch","human","undead","ship","boss","other"];
+const COLL = {people:"npcs", quests:"quests", weapons:"weapons", enemies:"enemies"};
+const NOUN = {people:"person", quests:"quest", weapons:"weapon", enemies:"enemy"};
+
+const $ = s => document.querySelector(s);
+const app = $("#app");
+const clone = o => JSON.parse(JSON.stringify(o));
+let S, V;
+
+// ---------- storage: localStorage + IndexedDB, newest wins ----------
+function idb(){ return new Promise((res, rej) => { const r = indexedDB.open("pirate-notebook", 1);
+  r.onupgradeneeded = () => r.result.createObjectStore("kv"); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+let DB = null;
+async function idbGet(){ try { DB ||= await idb(); return await new Promise(res => { const q = DB.transaction("kv").objectStore("kv").get("state"); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); }); } catch(e){ return null; } }
+async function idbPut(v){ try { DB ||= await idb(); DB.transaction("kv", "readwrite").objectStore("kv").put(v, "state"); } catch(e){} }
+
+function normalise(s){
+  s ||= {};
+  for (const k of ["npcs","quests","weapons","enemies"]) if (!Array.isArray(s[k])) s[k] = [];
+  for (const n of s.npcs) { n.look ||= {}; n.day ||= []; n.phrases ||= n.lines || []; delete n.lines; }
+  for (const q of s.quests) { q.stages ||= []; for (const st of q.stages) { st.needs ||= []; st.others ||= []; st.next ||= []; } }
+  for (const w of s.weapons) w.moves ||= [];
+  return s;
+}
+async function load(){
+  let a = null; try { a = JSON.parse(localStorage.getItem(KEY)); } catch(e){}
+  const b = await idbGet();
+  const best = [a, b].filter(x => x && Array.isArray(x.npcs)).sort((x,y) => (y.saved||0) - (x.saved||0))[0];
+  S = normalise(best ? best : clone(SEED));
+  try { V = JSON.parse(localStorage.getItem(VKEY)) || {}; } catch(e){ V = {}; }
+  V.tab ||= "people";
+}
+let saveT;
+function save(){ clearTimeout(saveT); saveT = setTimeout(saveNow, 250); }
+function saveNow(){
+  clearTimeout(saveT);
+  S.saved = Date.now();
+  idbPut(clone(S));
+  try { localStorage.setItem(KEY, JSON.stringify(S)); localStorage.setItem(VKEY, JSON.stringify(V)); }
+  catch(e){ toast("Could not save: " + e.message); }
+  showSaved();
+}
+function showSaved(){ if (S.saved) $("#saved").textContent = "Saved " + new Date(S.saved).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}); }
+document.addEventListener("visibilitychange", () => { if (document.hidden) saveNow(); });
+addEventListener("pagehide", saveNow);
+
+function toast(m){ const t = $("#toast"); t.textContent = m; t.classList.add("on"); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove("on"), 1800); }
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const slug = s => String(s||"").toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g,"").trim().replace(/[\s-]+/g,"_");
+const cur = () => V.edit && COLL[V.tab] ? S[COLL[V.tab]].find(x => x.uid === V.edit) : null;
+const npcNamed = name => name && S.npcs.find(n => n.name.toLowerCase() === String(name).toLowerCase());
+
+const blank = {
+  people: () => ({uid:uid(), id:"", name:"", role:"", home:"", island:"", scale:"", body:"woman",
+    look:{face:"", skin:"", tint:"", hair:"", fringe:"", beard:"none", cup:"", top:"", dye:"", legs:"", leg_dye:"", shoes:""},
+    lookNotes:"", personality:"", phrases:[], day:[], notes:""}),
+  quests: () => ({uid:uid(), id:"", title:"", objective:"", giver:"", location:"", order:"", once:true, rewards:"", stages:[], thanks:"", after:"", notes:""}),
+  weapons: () => ({uid:uid(), name:"", description:"", moves:[], notes:""}),
+  enemies: () => ({uid:uid(), name:"", type:"", where:"", behaviour:"", attacks:"", drops:"", status:"idea", notes:""}),
+};
+const newStage = n => ({n:String(n), name:"", ask:"", remind:"", track:"", needs:[], gold:"", food:"", payOther:"", others:[], next:[]});
+
+// ---------- field helpers ----------
+function opts(list, val, ph){
+  let h = `<option value="">${esc(ph || "—")}</option>`, found = val === "" || val == null;
+  const one = (v, l) => { const on = String(v) === String(val); if (on) found = true; return `<option value="${esc(v)}"${on?" selected":""}>${esc(l ?? v)}</option>`; };
+  for (const g of list) h += g && g.label ? `<optgroup label="${esc(g.label)}">${g.items.map(i => Array.isArray(i) ? one(...i) : one(i)).join("")}</optgroup>` : Array.isArray(g) ? one(...g) : one(g);
+  if (!found) h += `<option value="${esc(val)}" selected>${esc(val)} (not in list)</option>`;
+  return h;
+}
+const sel = (p, val, list, ph, extra="") => `<select data-p="${p}" ${extra}>${opts(list, val, ph)}</select>`;
+const inp = (p, val, attrs="") => `<input data-p="${p}" value="${esc(val)}" ${attrs}>`;
+const area = (p, val, ph="") => `<textarea data-p="${p}" placeholder="${esc(ph)}">${esc(val)}</textarea>`;
+const field = (label, html) => `<label class="f"><span>${label}</span>${html}</label>`;
+const sec = (id, title, body, open=true) => { const c = (V.closed||[]).includes(id), o = (V.opened||[]).includes(id);
+  return `<details class="sec" data-sec="${id}" ${(open && !c) || o ? "open" : ""}><summary>${title}</summary><div class="body">${body}</div></details>`; };
+const datalist = (id, items) => `<datalist id="${id}">${[...new Set(items)].map(i => `<option value="${esc(i)}">`).join("")}</datalist>`;
+const xBtn = (list, i) => `<button class="x" data-act="del" data-list="${list}" data-i="${i}" aria-label="Remove">✕</button>`;
+const gameChip = o => o.src === "game" ? `<span class="chip game">from game</span>` : "";
+function getP(o, p){ return p.split(".").reduce((a,k) => a?.[k], o); }
+function setP(o, p, v){ const ks = p.split("."), last = ks.pop(); ks.reduce((a,k) => a[k], o)[last] = v; }
+
+// ---------- rendering ----------
+const TITLE = {people:"People", quests:"Quests", weapons:"Weapons", enemies:"Enemies", export:"Export"};
+function render(){
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === V.tab));
+  const o = cur(), hd = $("#hd");
+  if (o) {
+    const nm = o.name || o.title || `New ${NOUN[V.tab]}`;
+    hd.innerHTML = `<button class="back" data-act="back">‹ ${TITLE[V.tab]}</button><h1>${esc(nm)}</h1>`;
+    app.innerHTML = EDIT[V.tab](o);
+  } else {
+    V.edit = null;
+    hd.innerHTML = `<h1>${TITLE[V.tab]}</h1>`;
+    app.innerHTML = V.tab === "export" ? exportView() : listView(V.tab);
+  }
+  app.querySelectorAll("textarea").forEach(grow);
+  try { localStorage.setItem(VKEY, JSON.stringify(V)); } catch(e){}
+}
+function grow(t){ t.style.height = "auto"; t.style.height = (t.scrollHeight + 2) + "px"; }
+
+const LIST = {
+  people: n => ({t:n.name, s:[n.role, n.home, n.island].filter(Boolean).join(" · "), chips:[
+    missing(n).length ? `<span class="chip warn">look: ${missing(n).length} to pick</span>` : "",
+    n.personality ? "" : `<span class="chip">no personality yet</span>`,
+    `<span class="chip">${n.phrases.length} phrase${n.phrases.length===1?"":"s"}</span>`,
+    S.quests.some(q => npcNamed(q.giver) === n) ? `<span class="chip">gives quests</span>` : ""]}),
+  quests: q => ({t:q.title, s:[q.giver, q.location].filter(Boolean).join(" · "), chips:[`<span class="chip">${q.stages.length} step${q.stages.length===1?"":"s"}</span>`, q.order ? `<span class="chip">order ${esc(q.order)}</span>` : ""]}),
+  weapons: w => ({t:w.name, s:w.description, chips:[`<span class="chip">${w.moves.length} move${w.moves.length===1?"":"s"}</span>`]}),
+  enemies: e => ({t:e.name, s:[e.type, e.where].filter(Boolean).join(" · "), chips:[e.status ? `<span class="chip">${esc(e.status)}</span>` : ""]}),
+};
+function listView(tab){
+  const q = (V.q?.[tab] || "").toLowerCase();
+  let rows = S[COLL[tab]];
+  if (tab === "quests") rows = [...rows].sort((a,b) => (+a.order||999) - (+b.order||999));
+  if (q) rows = rows.filter(x => JSON.stringify(x).toLowerCase().includes(q));
+  return `<div class="row" style="margin-bottom:12px"><input class="grow" style="width:auto" id="search" type="search" placeholder="Search ${TITLE[tab].toLowerCase()}" value="${esc(V.q?.[tab]||"")}"><button class="btn primary" data-act="add">+ New</button></div>
+  <div class="list">${rows.map(x => { const r = LIST[tab](x);
+    return `<a href="#" data-act="open" data-tab2="${tab}" data-id="${x.uid}"><div class="t">${esc(r.t || "Untitled")}</div><div class="s">${esc((r.s||"—").slice(0,120))}</div>${gameChip(x)}${r.chips.join("")}</a>`; }).join("")
+    || `<div class="empty">${S[COLL[tab]].length ? "No matches." : "Nothing here yet. Tap + New."}${!S[COLL[tab]].length && !SEED.npcs.length && !S.npcs.some(n => n.src === "game") ? `<br><br>To load the game baseline, use <a href="#" data-tab="export">Export → Import &amp; merge</a> with the baseline JSON.` : ""}</div>`}</div>`;
+}
+const footer = o => `<div class="row" style="margin-top:8px"><button class="btn" data-act="dup">Duplicate</button><button class="btn danger" data-act="delItem">Delete</button></div>`
+  + (o.src === "game" ? `<p class="hint" style="margin-top:10px">Pre-filled from the game code. Edits here are your notes; the game is unchanged until an agent applies them.</p>` : "");
+
+// --- people ---
+const REQUIRED = {face:"face", skin:"skin", tint:"hair colour", top:"top", dye:"top dye", legs:"legs", shoes:"shoes"};
+const missing = n => Object.keys(REQUIRED).filter(k => n.look[k] === "" || n.look[k] == null).map(k => REQUIRED[k]);
+function faceGroups(body){
+  const pre = body === "man" ? ["m-"] : ["f-","w-"], g = {};
+  for (const f of D.faces) if (pre.some(p => f.startsWith(p))) (g[f.split("-").slice(0,2).join("-")] ||= []).push(f);
+  return Object.keys(g).sort().map(k => ({label:k, items:g[k]}));
+}
+function wardrobe(list, body){
+  const male = list.filter(x => x.startsWith("male ")), rest = list.filter(x => !x.startsWith("male "));
+  return body === "man" ? [{label:"Men's", items:male}, {label:"Other (may not fit)", items:rest}]
+                        : [{label:"Women's", items:rest}, {label:"Men's (may not fit)", items:male}];
+}
+const places = () => S.npcs.map(x => x.island).concat(S.quests.map(q => q.location), S.enemies.map(e => e.where)).filter(Boolean);
+
+const EDIT = {};
+EDIT.people = n => {
+  const L = n.look, miss = missing(n);
+  const ident = field("Name", inp("name", n.name, `data-rr="hd" autocapitalize="words"`))
+    + `<div class="grid2">${field("Role", inp("role", n.role, `placeholder="e.g. Baker"`))}${field("ID", inp("id", n.id, `placeholder="${esc(slug(n.name)||"auto from name")}" autocapitalize="off" autocorrect="off"`))}</div>`
+    + `<div class="grid2">${field("Home", inp("home", n.home, `list="dl-homes" autocapitalize="off"`))}${field("Island / place", inp("island", n.island, `list="dl-places"`))}</div>`
+    + field("Body scale", inp("scale", n.scale, `inputmode="decimal" placeholder="1.0 (a child is ~0.74)"`))
+    + datalist("dl-homes", D.homes) + datalist("dl-places", places());
+
+  const sk = D.skins.map((c,i) => `<button data-act="skin" data-v="${i}" class="${String(L.skin)===String(i)?"on":""}" style="background:${c}">${i}</button>`).join("");
+  const look = (miss.length ? `<p class="hint" style="color:var(--danger)">Still to pick: ${miss.join(", ")}.</p>` : "")
+    + `<div class="seg"><button data-act="body" data-v="woman" class="${n.body==="woman"?"on":""}">Woman</button><button data-act="body" data-v="man" class="${n.body==="man"?"on":""}">Man</button></div>`
+    + field("Face", sel("look.face", L.face, faceGroups(n.body), "Choose a face"))
+    + `<label class="f"><span>Skin (near the face's painted complexion)</span></label><div class="swatches">${sk}</div>`
+    + `<div class="grid2">${field("Hair colour", sel("look.tint", L.tint, D.tints))}`
+    + (n.body === "woman" ? field("Wig", sel("look.hair", L.hair, D.wigs, "None")) + "</div>"
+        + `<div class="grid2">${field("Painted fringe", sel("look.fringe", L.fringe, D.fringes.map((f,i) => [i, `${i} ${f}`])))}${field("Cup", sel("look.cup", L.cup, ["A","B","C"], "Default (B)"))}</div>`
+      : field("Facial hair", sel("look.beard", L.beard, D.beards, "none")) + "</div>")
+    + `<div class="grid2">${field("Top", sel("look.top", L.top, wardrobe(D.tops, n.body)))}${field("Top dye", sel("look.dye", L.dye, D.dyes))}</div>`
+    + `<div class="grid2">${field("Legs", sel("look.legs", L.legs, wardrobe(D.legs, n.body)))}${field("Leg dye", sel("look.leg_dye", L.leg_dye, D.dyes, "charcoal"))}</div>`
+    + field("Shoes", sel("look.shoes", L.shoes, wardrobe(D.shoes, n.body)))
+    + field("Anything the pickers can't say", area("lookNotes", n.lookNotes, "Scar, eyepatch, always carries a ladle…"));
+
+  const persona = area("personality", n.personality, "How they talk, what they want, what they hide, how they treat the player…");
+  const phrases = `<p class="hint">Sample lines in their voice. Tag them however helps.</p>`
+    + n.phrases.map((l,i) => `<div class="card"><div class="row"><input class="grow" style="width:auto" data-p="phrases.${i}.when" value="${esc(l.when)}" list="dl-when" placeholder="when (optional)">${xBtn("phrases", i)}</div>
+      <div style="margin-top:8px">${area(`phrases.${i}.text`, l.text, "What they say")}</div></div>`).join("")
+    + `<button class="btn" data-act="push" data-list="phrases">+ Add phrase</button>` + datalist("dl-when", WHEN);
+
+  const day = `<p class="hint">Hours 0–24 · 6 sunrise · 12 noon · 18 sunset. A bark is what they say as you pass; blank indoors.</p>`
+    + n.day.map((d,i) => `<div class="card"><div class="row">
+        <input style="width:76px" data-p="day.${i}.h" value="${esc(d.h)}" inputmode="decimal" placeholder="hour">
+        <select class="grow" style="width:auto" data-p="day.${i}.kind" data-rerender>${opts(KINDS, d.kind, "where")}</select>
+        <input class="grow" style="width:auto" data-p="day.${i}.target" value="${esc(d.target)}" list="dl-t-${d.kind||"x"}" placeholder="${["inside","door"].includes(d.kind)?"building":d.kind==="stall"?"stall":"offset"}" autocapitalize="off">
+        ${xBtn("day", i)}</div><div style="margin-top:8px">${area(`day.${i}.bark`, d.bark, "Bark (optional)")}</div></div>`).join("")
+    + `<div class="row"><button class="btn" data-act="addDay">+ Add stop</button>${n.day.length>1?`<button class="btn" data-act="sortDay">Sort by hour</button>`:""}</div>`
+    + datalist("dl-t-inside", D.homes) + datalist("dl-t-door", D.homes) + datalist("dl-t-stall", D.stalls);
+
+  const qs = S.quests.filter(q => npcNamed(q.giver) === n);
+  const quests = `<div class="list">${qs.map(q => `<a href="#" data-act="open" data-tab2="quests" data-id="${q.uid}"><div class="t">${esc(q.title||"Untitled quest")}</div><div class="s">${esc(q.objective.split("\n")[0]||"")}</div></a>`).join("")}</div>
+    <button class="btn" data-act="questFor">+ New quest from ${esc(n.name || "them")}</button>`;
+
+  return sec("p-id","Name & role", ident) + sec("p-look","Customization", look) + sec("p-pers","Personality", persona)
+    + sec("p-phr","Example phrases", phrases) + sec("p-q","Quests they give", quests, qs.length > 0)
+    + sec("p-day",`Daily schedule (${n.day.length})`, day, false) + sec("p-notes","Notes", area("notes", n.notes, "Backstory, ideas, open questions…"))
+    + footer(n);
+};
+
+// --- quests ---
+EDIT.quests = q => {
+  const g = npcNamed(q.giver);
+  const head = field("Title", inp("title", q.title, `data-rr="hd"`))
+    + field("Objective", area("objective", q.objective, "What the player has to do, in plain words"))
+    + `<div class="grid2">${field("Quest giver", inp("giver", q.giver, `list="dl-npcs" autocapitalize="words"`))}${field("Location", inp("location", q.location, `list="dl-places"`))}</div>`
+    + (g ? `<button class="btn small" data-act="open" data-tab2="people" data-id="${g.uid}" style="margin:-4px 0 12px">Open ${esc(g.name)} ›</button>` : q.giver ? `<p class="hint">No person called “${esc(q.giver)}” in People: fine for a board or a role.</p>` : "")
+    + field("Rewards", area("rewards", q.rewards, "Gold, items, unlocks (per-step pay can go in the steps)"))
+    + `<div class="grid2">${field("ID", inp("id", q.id, `placeholder="${esc(slug(q.title)||"auto")}" autocapitalize="off" autocorrect="off"`))}${field("Order", inp("order", q.order, `inputmode="numeric" placeholder="e.g. 20"`))}</div>`
+    + `<label class="row" style="margin-bottom:6px"><input type="checkbox" data-p="once" ${q.once?"checked":""} style="width:24px;min-height:24px"> <span>Can only be done once</span></label>`
+    + datalist("dl-npcs", S.npcs.map(n => n.name).filter(Boolean)) + datalist("dl-places", places());
+
+  const stages = `<p class="hint">Steps run top to bottom unless a step has branches. Each step has its own ask, reminder, tracker, items, pay and where it leads.</p>` + flow(q)
+    + q.stages.map((s,i) => `<div class="card stage">
+      <div class="row"><input style="width:68px" data-p="stages.${i}.n" value="${esc(s.n)}" inputmode="numeric"><input class="grow" style="width:auto" data-p="stages.${i}.name" value="${esc(s.name)}" placeholder="Step name" data-rerender-blur>${xBtn("stages", i)}</div>
+      <div class="row" style="margin-top:6px">${i>0?`<button class="btn small" data-act="moveStage" data-i="${i}" data-d="-1">↑ Move up</button>`:""}${i<q.stages.length-1?`<button class="btn small" data-act="moveStage" data-i="${i}" data-d="1">↓ Move down</button>`:""}</div>
+      <div class="sub">Ask</div>${area(`stages.${i}.ask`, s.ask, "What the giver says handing out this step")}
+      <div class="sub">Reminder</div>${area(`stages.${i}.remind`, s.remind, "If you come back before it's done")}
+      <div class="sub">Tracker</div>${inp(`stages.${i}.track`, s.track, `placeholder="e.g. BRING 6 WOOD"`)}
+      <div class="sub">Bring</div>
+      ${s.needs.map((x,j) => `<div class="row" style="margin-bottom:6px"><input class="grow" style="width:auto" data-p="stages.${i}.needs.${j}.item" value="${esc(x.item)}" list="dl-items" placeholder="item" autocapitalize="off"><input style="width:68px" data-p="stages.${i}.needs.${j}.count" value="${esc(x.count)}" inputmode="numeric" placeholder="#">${xBtn(`stages.${i}.needs`, j)}</div>`).join("")}
+      <button class="btn small" data-act="push" data-list="stages.${i}.needs">+ Item</button>
+      <div class="sub">Pays on reaching this step</div>
+      <div class="grid2">${field("Gold", inp(`stages.${i}.gold`, s.gold, `inputmode="numeric"`))}${field("Food", inp(`stages.${i}.food`, s.food, `inputmode="numeric"`))}</div>
+      ${field("Other", inp(`stages.${i}.payOther`, s.payOther))}
+      <div class="sub">Other people's lines</div>
+      ${s.others.map((o,j) => `<div class="card"><div class="row"><input class="grow" style="width:auto" data-p="stages.${i}.others.${j}.who" value="${esc(o.who)}" list="dl-npcs" placeholder="Who">${xBtn(`stages.${i}.others`, j)}</div><div style="margin-top:8px">${area(`stages.${i}.others.${j}.text`, o.text, "What they say")}</div></div>`).join("")}
+      <button class="btn small" data-act="push" data-list="stages.${i}.others">+ Line from someone else</button>
+      <div class="sub">Leads to</div>
+      ${s.next.length ? "" : `<p class="hint">${esc(exits(q,i)[0].to === "end" ? "Ends the quest (last step)." : "Goes on to " + stepLabel(q, exits(q,i)[0].to) + " (next in the list).")} Add a branch to change that.</p>`}
+      ${s.next.map((x,j) => `<div class="card"><div class="row"><input class="grow" style="width:auto" data-p="stages.${i}.next.${j}.when" value="${esc(x.when)}" placeholder="If / when (e.g. player chose to help, has the key)">${xBtn(`stages.${i}.next`, j)}</div>
+        <div style="margin-top:8px">${sel(`stages.${i}.next.${j}.to`, x.to, q.stages.filter((_,k) => k !== i).map(t => [String(t.n), stepLabel(q, t.n)]).concat([["end","end (quest complete)"]]), "Go to step…", "data-rerender")}</div></div>`).join("")}
+      <div class="row"><button class="btn small" data-act="push" data-list="stages.${i}.next">+ Branch to existing step</button><button class="btn small" data-act="branchNew" data-i="${i}">+ Branch to a new step</button></div></div>`).join("")
+    + `<button class="btn" data-act="addStage">+ Add step</button>` + datalist("dl-items", ITEMS);
+
+  const end = field("On completion", area("thanks", q.thanks, "What the giver says when you finish"))
+    + field("Afterwards", area("after", q.after, "What they say from then on"))
+    + field("Notes", area("notes", q.notes, "Open questions, unlocks, ideas…"));
+  return sec("q-head","Quest", head) + sec("q-st",`Steps (${q.stages.length})`, stages, q.stages.length < 3) + sec("q-end","Ending & notes", end) + footer(q);
+};
+
+// steps: where each one goes. No branches = the next step in the list, or the end.
+const stepLabel = (q, n) => { if (n === "end") return "end (quest complete)"; const s = q.stages.find(x => String(x.n) === String(n)); return s ? `${s.n}${s.name ? " " + s.name : ""}` : `${n} (missing step)`; };
+function exits(q, i){
+  const s = q.stages[i];
+  if (s.next.length) return s.next.map(b => ({when:b.when, to:b.to || ""}));
+  return [{when:"", to: q.stages[i+1] ? String(q.stages[i+1].n) : "end"}];
+}
+function flow(q){
+  if (!q.stages.length) return "";
+  return `<div class="card"><div class="sub" style="margin-top:0">Flow</div>${q.stages.map((s,i) =>
+    `<div style="margin:0 0 6px"><b>${esc(stepLabel(q, s.n))}</b>${exits(q,i).map(x => `<div class="hint" style="margin:0 0 0 14px">→ ${x.when ? `<i>${esc(x.when)}:</i> ` : ""}${esc(x.to ? stepLabel(q, x.to) : "(pick a step)")}</div>`).join("")}</div>`).join("")}</div>`;
+}
+
+// --- weapons ---
+EDIT.weapons = w => {
+  const head = field("Name", inp("name", w.name, `data-rr="hd"`)) + field("Description", area("description", w.description, "Feel, range, who it suits…"));
+  const moves = `<p class="hint">One card per attack input.</p>` + w.moves.map((m,i) => `<div class="card">
+      <div class="row"><input class="grow" style="width:auto" data-p="moves.${i}.input" value="${esc(m.input)}" placeholder="Input (e.g. LMB ×3, hold LMB, airborne + LMB)" list="dl-inputs">${xBtn("moves", i)}</div>
+      <div style="margin-top:8px">${inp(`moves.${i}.name`, m.name, `placeholder="Move name"`)}</div>
+      <div style="margin-top:8px">${area(`moves.${i}.does`, m.does, "What it does: damage, launch, stagger, range, timing…")}</div></div>`).join("")
+    + `<button class="btn" data-act="push" data-list="moves">+ Add attack input</button>`
+    + datalist("dl-inputs", S.weapons.flatMap(x => x.moves.map(m => m.input)).filter(Boolean));
+  return sec("w-head","Weapon", head) + sec("w-moves",`Attack inputs (${w.moves.length})`, moves) + sec("w-notes","Notes", area("notes", w.notes, "Balance thoughts, animation ideas, combos…")) + footer(w);
+};
+
+// --- enemies ---
+EDIT.enemies = e => {
+  const body = field("Name", inp("name", e.name, `data-rr="hd"`))
+    + `<div class="grid2">${field("Type", inp("type", e.type, `list="dl-etypes" autocapitalize="off"`))}${field("Status", sel("status", e.status, ["idea","story only","in game"]))}</div>`
+    + field("Where", inp("where", e.where, `list="dl-places"`))
+    + field("Behaviour", area("behaviour", e.behaviour, "How it moves, when it notices you, how it fights"))
+    + field("Attacks", area("attacks", e.attacks, "Each attack: tell, damage, how to dodge or counter"))
+    + field("Drops", inp("drops", e.drops))
+    + field("Notes", area("notes", e.notes, "Look, sounds, lore…"))
+    + datalist("dl-etypes", ENEMY_TYPES.concat(S.enemies.map(x => x.type)).filter(Boolean)) + datalist("dl-places", places());
+  return sec("e-main","Enemy", body) + footer(e);
+};
+
+// ---------- export ----------
+function exportView(){
+  const when = S.saved ? new Date(S.saved).toLocaleString() : "not yet";
+  const mine = k => S[k].filter(x => x.src !== "game").length;
+  const label = {npcs:"people", quests:"quests", weapons:"weapons", enemies:"enemies"};
+  return `<div class="card">${Object.keys(label).map(k => `<b>${S[k].length}</b> ${label[k]} <span class="hint">(${mine(k)} new)</span>`).join("<br>")}
+    <p class="hint" style="margin:8px 0 0">Last saved ${esc(when)}. Everything lives on this phone only. Export before deleting the app.</p></div>
+  <div class="sub">For the agents (readable)</div>
+  <div class="row" style="margin-bottom:8px"><button class="btn primary" data-act="share" data-what="md">Share Markdown</button><button class="btn" data-act="copy" data-what="md">Copy</button></div>
+  <div class="sub">Full backup (re-importable)</div>
+  <div class="row" style="margin-bottom:8px"><button class="btn primary" data-act="share" data-what="json">Share JSON</button><button class="btn" data-act="copy" data-what="json">Copy</button></div>
+  <div class="sub">GDScript (folk rows + quest constants)</div>
+  <div class="row" style="margin-bottom:16px"><button class="btn primary" data-act="share" data-what="gd">Share GDScript</button><button class="btn" data-act="copy" data-what="gd">Copy</button></div>
+  <div class="sub">Import a JSON backup</div>
+  <div class="row" style="margin-bottom:16px"><button class="btn" data-act="import" data-mode="merge">Import &amp; merge</button><button class="btn danger" data-act="import" data-mode="replace">Import &amp; replace all</button></div>
+  <input type="file" id="file" accept="application/json,.json" style="display:none">
+  ${SEED.npcs.length ? `<div class="sub">Game baseline</div>
+  <div class="row" style="margin-bottom:16px"><button class="btn" data-act="reseed">Restore deleted game entries</button></div>` : ""}
+  <div class="sub">Markdown preview</div><pre>${esc(markdown())}</pre>`;
+}
+
+const md = s => String(s ?? "").trim();
+const quote = (s, pad) => md(s).split("\n").map(l => pad + "> " + l).join("\n");
+function markdown(){
+  const o = [`# Pirate Notebook export`, `Exported ${new Date().toLocaleString()}. Entries marked *(from game)* were pre-filled from the code, so differences from the code are the author's intended changes. *(new)* entries are new.`, ""];
+  const tag = x => x.src === "game" ? " *(from game)*" : " *(new)*";
+  o.push("## People", "");
+  for (const n of S.npcs) {
+    const L = n.look, has = v => v !== "" && v != null;
+    o.push(`### ${n.name || "Unnamed"}${tag(n)}`);
+    o.push(`- **Role:** ${md(n.role)||"—"} · **Home:** ${md(n.home)||"—"} · **Place:** ${md(n.island)||"—"}${n.scale?` · **Scale:** ${n.scale}`:""}`);
+    const look = [`body ${n.body}`, L.face&&`face ${L.face}`, has(L.skin)&&`skin ${L.skin}`, L.tint&&`hair colour ${L.tint}`,
+      n.body==="woman"&&L.hair&&`wig ${L.hair}`, n.body==="woman"&&has(L.fringe)&&`fringe ${L.fringe} (${D.fringes[L.fringe]||""})`, n.body==="woman"&&L.cup&&`cup ${L.cup}`,
+      n.body==="man"&&L.beard&&L.beard!=="none"&&`facial hair ${L.beard}`, L.top&&`top ${L.top}${L.dye?` (${L.dye})`:""}`, L.legs&&`legs ${L.legs}${L.leg_dye?` (${L.leg_dye})`:""}`, L.shoes&&`shoes ${L.shoes}`].filter(Boolean);
+    o.push(`- **Customization:** ${look.join(", ")}`);
+    if (missing(n).length) o.push(`- **Customization still to pick:** ${missing(n).join(", ")}`);
+    if (md(n.lookNotes)) o.push(`- **Look notes:** ${md(n.lookNotes)}`);
+    o.push(`- **Personality:** ${md(n.personality).replace(/\n/g," ") || "—"}`);
+    if (n.phrases.length) { o.push(`- **Example phrases:**`); for (const p of n.phrases) o.push(`  - ${p.when?`*${md(p.when)}:* `:""}“${md(p.text).replace(/\n/g," / ")}”`); }
+    if (n.day.length) { o.push(`- **Daily schedule:**`); for (const d of n.day) o.push(`  - ${d.h}h ${d.kind}${d.target?":"+d.target:""}${d.bark?` — “${md(d.bark)}”`:""}`); }
+    if (md(n.notes)) o.push(`- **Notes:** ${md(n.notes).replace(/\n/g," ")}`);
+    o.push("");
+  }
+  o.push("## Quests", "");
+  for (const q of S.quests) {
+    o.push(`### ${q.title || "Untitled"}${tag(q)}`);
+    o.push(`- **Quest giver:** ${md(q.giver)||"—"} · **Location:** ${md(q.location)||"—"}${q.order?` · **Order:** ${q.order}`:""} · ${q.once?"once":"repeatable"}`);
+    o.push(`- **Objective:** ${md(q.objective).replace(/\n/g,"; ") || "—"}`);
+    if (md(q.rewards)) o.push(`- **Rewards:** ${md(q.rewards).replace(/\n/g," ")}`);
+    for (const s of q.stages) {
+      o.push(`- **Step ${s.n}${s.name?` — ${md(s.name)}`:""}**`);
+      if (md(s.track)) o.push(`  - Tracker: ${md(s.track)}`);
+      const needs = s.needs.filter(x => x.item).map(x => `${x.count||1} ${x.item}`).join(", "); if (needs) o.push(`  - Bring: ${needs}`);
+      const pay = [s.gold&&`${s.gold} gold`, s.food&&`${s.food} food`, md(s.payOther)].filter(Boolean).join(", "); if (pay) o.push(`  - Pays: ${pay}`);
+      if (md(s.ask)) o.push(`  - Ask:`, quote(s.ask, "    "));
+      if (md(s.remind)) o.push(`  - Reminder:`, quote(s.remind, "    "));
+      for (const x of s.others) if (md(x.text)) o.push(`  - ${md(x.who)||"Someone"} says:`, quote(x.text, "    "));
+      if (s.next.length) { o.push(`  - Leads to (branches):`); for (const x of s.next) o.push(`    - ${md(x.when)||"(no condition)"} → ${stepLabel(q, x.to)}`); }
+    }
+    if (q.stages.some(s => s.next.length)) o.push(`- **Branching:** steps without a "Leads to" go to the next step in order.`);
+    if (md(q.thanks)) o.push(`- **On completion:**`, quote(q.thanks, "  "));
+    if (md(q.after)) o.push(`- **Afterwards:**`, quote(q.after, "  "));
+    if (md(q.notes)) o.push(`- **Notes:**`, "  ```", ...md(q.notes).split("\n").map(l => "  " + l), "  ```");
+    o.push("");
+  }
+  o.push("## Weapons", "");
+  const cell = s => md(s).replace(/\|/g,"/").replace(/\n/g," ");
+  for (const w of S.weapons) {
+    o.push(`### ${w.name || "Unnamed"}${tag(w)}`);
+    if (md(w.description)) o.push(md(w.description), "");
+    if (w.moves.length) { o.push(`| Input | Move | What it does |`, `|---|---|---|`); for (const m of w.moves) o.push(`| ${cell(m.input)} | ${cell(m.name)} | ${cell(m.does)} |`); }
+    if (md(w.notes)) o.push("", `Notes: ${md(w.notes)}`);
+    o.push("");
+  }
+  o.push("## Enemies", "");
+  for (const e of S.enemies) {
+    o.push(`### ${e.name || "Unnamed"}${tag(e)}`);
+    o.push(`- **Type:** ${md(e.type)||"—"} · **Status:** ${md(e.status)||"—"} · **Where:** ${md(e.where)||"—"}`);
+    for (const [k,l] of [["behaviour","Behaviour"],["attacks","Attacks"],["drops","Drops"],["notes","Notes"]]) if (md(e[k])) o.push(`- **${l}:** ${md(e[k]).replace(/\n/g," ")}`);
+    o.push("");
+  }
+  return o.join("\n");
+}
+
+const gs = s => '"' + String(s ?? "").replace(/\\/g,"\\\\").replace(/"/g,'\\"').replace(/\n/g,"\\n") + '"';
+const flt = v => { const x = parseFloat(v); return isNaN(x) ? "0.0" : (Number.isInteger(x) ? x + ".0" : String(x)); };
+const CONST = s => slug(s).toUpperCase().replace(/^(\d)/,"_$1") || "STEP";
+const nid = n => n.id || slug(n.name) || n.uid;
+function npcRow(n){
+  const L = n.look, lk = [];
+  const add = (k, v, raw) => { if (v !== "" && v != null) lk.push(`${k} = ${raw ? v : gs(v)}`); };
+  add("face", L.face); if (L.skin !== "" && L.skin != null) add("skin", parseInt(L.skin), true); add("tint", L.tint);
+  if (n.body === "woman") { add("hair", L.hair); if (L.fringe !== "" && L.fringe != null) add("fringe", parseInt(L.fringe), true); add("cup", L.cup); }
+  else if (L.beard && L.beard !== "none") add("beard", L.beard);
+  add("top", L.top); add("dye", L.dye); add("legs", L.legs); add("leg_dye", L.leg_dye); add("shoes", L.shoes);
+  let o = missing(n).length ? `\t## TODO pick ${missing(n).join(", ")}: TidewickFolk cannot load this row yet\n` : "";
+  o += `\t{\n\t\tid = ${gs(nid(n))}, name = ${gs((n.name||"").toUpperCase())}, role = ${gs(n.role)}, home = ${gs(n.home)},\n`;
+  if (n.scale) o += `\t\tscale = ${flt(n.scale)},\n`;
+  o += `\t\tlook = {${lk.join(", ")}},\n\t\tday = [\n`;
+  for (const d of n.day) o += `\t\t\t[${flt(d.h)}, ${gs((d.kind||"") + (d.target ? ":" + d.target : ""))}, ${gs(d.bark)}],\n`;
+  return o + `\t\t],\n\t},\n`;
+}
+function questGd(q){
+  const used = {}, names = q.stages.map(s => { let c = CONST(s.name || "step " + s.n); if (used[c]) c += "_" + s.n; used[c] = 1; return c; });
+  let o = `## ===== ${(q.title||"UNTITLED").toUpperCase()} =====\nconst ID := ${gs(q.id || slug(q.title))}\nconst TITLE := ${gs((q.title||"").toUpperCase())}\n`;
+  o += `const PLACE := ${gs((q.location||"").toUpperCase())}\nconst SPEAKER := ${gs((q.giver||"").toUpperCase())}\nconst ROLE := ${gs(npcNamed(q.giver)?.role||"")}\n`;
+  if (md(q.objective)) o += md(q.objective).split("\n").map(l => "## Objective: " + l).join("\n") + "\n";
+  o += "\n"; q.stages.forEach((s,i) => o += `const S_${names[i]} := ${parseInt(s.n)||0}\n`); o += `const S_DONE := 100\n\n`;
+  q.stages.forEach((s,i) => {
+    s.needs.filter(x => x.item).forEach(x => o += `const ${names[i]}_${CONST(x.item)}_NEED := ${parseInt(x.count)||1}\n`);
+    if (s.gold) o += `const PAY_${names[i]}_GOLD := ${parseInt(s.gold)||0}\n`;
+    if (s.food) o += `const PAY_${names[i]}_FOOD := ${parseInt(s.food)||0}\n`;
+    if (s.payOther) o += `## PAY_${names[i]} also: ${s.payOther}\n`;
+    o += `const ASK_${names[i]} := ${gs(s.ask)}\nconst REMIND_${names[i]} := ${gs(s.remind)}\n`;
+    s.others.forEach(x => o += `const ${CONST(x.who || "OTHER")}_${names[i]} := ${gs(x.text)}\n`);
+    o += "\n";
+  });
+  o += `const THANKS := ${gs(q.thanks)}\nconst AFTER := ${gs(q.after)}\n\nconst DEF := {\n\tid = ID,\n\ttitle = TITLE,\n\tgiver = SPEAKER,\n\tplace = PLACE,\n`;
+  if (q.order) o += `\torder = ${parseInt(q.order)||0},\n`;
+  o += `\tonce = ${q.once ? "true" : "false"},\n\tstages = {\n`;
+  const sym = n => { if (n === "end") return "S_DONE"; const k = q.stages.findIndex(t => String(t.n) === String(n)); return k >= 0 ? "S_" + names[k] : gs(n); };
+  q.stages.forEach((s,i) => o += `\t\tS_${names[i]}: {name = ${gs(s.name)}, log = ASK_${names[i]},\n\t\t\ttrack = ${gs(s.track)}`
+    + (s.next.length ? `,\n\t\t\t## BRANCHES: the quest system is linear today; this is the intended routing.\n\t\t\tnext = [${s.next.map(x => `[${gs(x.when)}, ${sym(x.to)}]`).join(", ")}]` : "") + `},\n`);
+  return o + `\t},\n}\n`;
+}
+function gdscript(){
+  return `# Pirate Notebook export, ${new Date().toLocaleString()}\n# Personality, phrases, weapons and enemies are in the Markdown export.\n\n# ---- Rows for TidewickFolk.ROSTER ----\n`
+    + S.npcs.map(npcRow).join("")
+    + (S.quests.length ? `\n# ---- Quests (one file each, like bakehouse_quest.gd) ----\n\n` + S.quests.map(questGd).join("\n") : "");
+}
+
+async function share(name, text, type){
+  const file = new File([text], name, {type});
+  if (navigator.canShare && navigator.canShare({files:[file]})) {
+    try { await navigator.share({files:[file]}); return; } catch(e){ if (e.name === "AbortError") return; }
+  }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(file); a.download = name; a.click();
+}
+async function copy(text){ try { await navigator.clipboard.writeText(text); toast("Copied"); } catch(e){ toast("Copy failed: use Share"); } }
+const stamp = () => new Date().toISOString().slice(0,16).replace(/[:T]/g,"-");
+const OUT = {
+  md:   () => [`pirate-notebook-${stamp()}.md`, markdown(), "text/markdown"],
+  json: () => [`pirate-notebook-${stamp()}.json`, JSON.stringify({app:"pirate-notebook", version:1, ...S}, null, 2), "application/json"],
+  gd:   () => [`pirate-notebook-${stamp()}.gd`, gdscript(), "text/plain"],
+};
+
+// ---------- events ----------
+app.addEventListener("input", e => {
+  const el = e.target;
+  if (el.id === "search") { (V.q ||= {})[V.tab] = el.value; const p = el.selectionStart; render(); const s = $("#search"); s.focus(); try { s.setSelectionRange(p,p); } catch(_){} return; }
+  const o = cur(); if (!el.dataset.p || !o) return;
+  setP(o, el.dataset.p, el.type === "checkbox" ? el.checked : el.value);
+  if (el.tagName === "TEXTAREA") grow(el);
+  if (el.dataset.rr === "hd") $("#hd h1").textContent = el.value || `New ${NOUN[V.tab]}`;
+  save();
+  if ("rerender" in el.dataset) { const y = scrollY; render(); scrollTo(0, y); }
+});
+app.addEventListener("change", e => {
+  if (e.target.type === "checkbox" && e.target.dataset.p) e.target.dispatchEvent(new Event("input", {bubbles:true}));
+  else if (/^stages\.\d+\.(n|name)$/.test(e.target.dataset.p || "")) { const y = scrollY; render(); scrollTo(0, y); }
+});
+app.addEventListener("toggle", e => {
+  const d = e.target; if (!d.dataset?.sec) return;
+  const c = new Set(V.closed || []), op = new Set(V.opened || []);
+  if (d.open) { c.delete(d.dataset.sec); op.add(d.dataset.sec); } else { c.add(d.dataset.sec); op.delete(d.dataset.sec); }
+  V.closed = [...c]; V.opened = [...op];
+  try { localStorage.setItem(VKEY, JSON.stringify(V)); } catch(_){}
+}, true);
+
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-act],[data-tab]"); if (!b) return;
+  if (b.dataset.tab) { V.tab = b.dataset.tab; V.edit = null; render(); scrollTo(0,0); return; }
+  e.preventDefault();
+  const a = b.dataset.act, o = cur(), list = COLL[V.tab] && S[COLL[V.tab]];
+  switch (a) {
+    case "back": V.edit = null; break;
+    case "add": { const x = blank[V.tab](); list.unshift(x); V.edit = x.uid; scrollTo(0,0); break; }
+    case "open": V.tab = b.dataset.tab2; V.edit = b.dataset.id; scrollTo(0,0); break;
+    case "dup": { const x = clone(o); x.uid = uid(); delete x.src; if ("title" in x) x.title = (x.title||"") + " copy"; else x.name = (x.name||"") + " copy"; if ("id" in x) x.id = "";
+      list.splice(list.indexOf(o) + 1, 0, x); V.edit = x.uid; scrollTo(0,0); toast("Duplicated"); break; }
+    case "delItem": if (!confirm(`Delete ${o.name || o.title || "this"}?${o.src==="game"?" (Game entries can be restored from Export.)":""}`)) return;
+      list.splice(list.indexOf(o), 1); V.edit = null; break;
+    case "body": if (o.body === b.dataset.v) return;
+      o.body = b.dataset.v; Object.assign(o.look, {face:"", hair:"", fringe:"", cup:"", beard:"none", top:"", legs:"", shoes:""}); break;
+    case "skin": o.look.skin = b.dataset.v; break;
+    case "push": { const L = b.dataset.list, arr = getP(o, L);
+      arr.push(L === "phrases" ? {when:"", text:""} : L === "moves" ? {input:"", name:"", does:""} : /needs$/.test(L) ? {item:"", count:""} : /next$/.test(L) ? {when:"", to:""} : {who:"", text:""}); break; }
+    case "del": { if (b.dataset.list === "stages" && !confirm("Remove this step and everything in it?")) return; getP(o, b.dataset.list).splice(+b.dataset.i, 1); break; }
+    case "addDay": { const last = o.day[o.day.length-1]; o.day.push({h: last ? String(Math.min(24, (parseFloat(last.h)||0) + 1)) : "0", kind:"", target:"", bark:""}); break; }
+    case "sortDay": o.day.sort((x,y) => (parseFloat(x.h)||0) - (parseFloat(y.h)||0)); break;
+    case "moveStage": { const i = +b.dataset.i, j = i + +b.dataset.d; [o.stages[i], o.stages[j]] = [o.stages[j], o.stages[i]]; break; }
+    case "branchNew": { const i = +b.dataset.i, n = Math.max(0, ...o.stages.map(s => parseInt(s.n)||0)) + 10, st = newStage(n);
+      const s = o.stages[i];
+      if (!s.next.length) { const d = exits(o, i)[0]; s.next.push({when:"otherwise", to:d.to}); }
+      s.next.push({when:"", to:String(n)}); o.stages.splice(i + 1, 0, st); toast(`Added step ${n}`); break; }
+    case "addStage": { const last = o.stages[o.stages.length-1]; o.stages.push(newStage(last ? (parseInt(last.n)||0) + 10 : 10)); break; }
+    case "questFor": { const x = blank.quests(); x.giver = o.name; x.location = o.island; S.quests.unshift(x); V.tab = "quests"; V.edit = x.uid; scrollTo(0,0); break; }
+    case "share": saveNow(); return share(...OUT[b.dataset.what]());
+    case "copy": return copy(OUT[b.dataset.what]()[1]);
+    case "import": { const f = $("#file"); f.dataset.mode = b.dataset.mode; f.value = ""; f.click(); return; }
+    case "reseed": { let n = 0; for (const k of ["npcs","quests","weapons","enemies"]) for (const x of SEED[k]) if (!S[k].some(y => y.uid === x.uid)) { S[k].push(clone(x)); n++; }
+      toast(n ? `Restored ${n}` : "Nothing missing"); break; }
+    default: return;
+  }
+  const y = scrollY; save(); render();
+  if (["push","del","addDay","sortDay","addStage","moveStage","branchNew","skin","body"].includes(a)) scrollTo(0, y);
+});
+
+app.addEventListener("change", async e => {
+  if (e.target.id !== "file" || !e.target.files[0]) return;
+  try {
+    const d = normalise(JSON.parse(await e.target.files[0].text()));
+    if (e.target.dataset.mode === "replace") {
+      if (!confirm(`Replace everything here with the file's ${d.npcs.length} people, ${d.quests.length} quests, ${d.weapons.length} weapons, ${d.enemies.length} enemies?`)) return;
+      S = d;
+    } else for (const k of ["npcs","quests","weapons","enemies"]) for (const x of d[k]) { const i = S[k].findIndex(y => y.uid === x.uid); i >= 0 ? S[k][i] = x : S[k].push(x); }
+    saveNow(); render(); toast("Imported");
+  } catch(err){ alert("Import failed: " + err.message); }
+});
+
+(async () => {
+  await load(); showSaved(); render();
+  if (!S.saved) saveNow();
+  if (navigator.storage?.persist) navigator.storage.persist().catch(() => {});
+  if ("serviceWorker" in navigator && isSecureContext) navigator.serviceWorker.register("sw.js").catch(() => {});
+})();
+</script>
+</body>
+</html>
